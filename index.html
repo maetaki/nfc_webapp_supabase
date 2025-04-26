@@ -45,7 +45,7 @@
                 .select('*');
 
             if (error) {
-                console.error(error);
+                console.error('データ取得エラー:', error);
                 return;
             }
 
@@ -72,6 +72,7 @@
 
             let equipmentList = '';
 
+            // 各設備の状態を表示
             for (const key in equipmentNames) {
                 if (selectedUser[key] === "1") {
                     equipmentList += `<li>${equipmentNames[key]}</li>`;
