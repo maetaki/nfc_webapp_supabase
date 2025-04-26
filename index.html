@@ -14,17 +14,18 @@
   <h2>登録済み設備</h2>
   <ul id="equipmentList"></ul>
 
-  <!-- ① Supabaseのライブラリを先に読み込む -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <!-- ここからJS（Supabaseのライブラリを使う） -->
+  <script type="module">
+    // Supabaseのライブラリをimport
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-  <!-- ② Supabaseクライアントを作成する -->
-  <script>
-    const supabase = supabase.createClient(
-      'https://gxgzndqvwrljktiurlai.supabase.co', 
+    // Supabaseの設定
+    const supabase = createClient(
+      'https://gxgzndqvwrljktiurlai.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
     );
 
-    // 設備名を日本語に変換するマップ
+    // 英語 → 日本語の設備名変換
     const equipmentNames = {
       drill_large: 'ボール盤（大）',
       drill_small: 'ボール盤（小）',
@@ -39,10 +40,11 @@
       bend_small: '曲げ機（小）',
     };
 
+    // ユーザーリストを取得して表示
     async function loadUsers() {
       const { data: users, error } = await supabase.from('cards').select('*');
       if (error) {
-        console.error(error);
+        console.error('データ取得エラー:', error);
         return;
       }
 
@@ -54,6 +56,7 @@
         userSelect.appendChild(option);
       });
 
+      // ユーザーが選択されたら設備を表示
       userSelect.addEventListener('change', function() {
         const selectedId = parseInt(this.value);
         const selectedUser = users.find(user => user.id === selectedId);
@@ -61,6 +64,7 @@
       });
     }
 
+    // 選択したユーザーの登録設備を表示
     function showEquipments(user) {
       const equipmentList = document.getElementById('equipmentList');
       equipmentList.innerHTML = '';
@@ -76,6 +80,7 @@
       });
     }
 
+    // 初期ロード
     loadUsers();
   </script>
 </body>
