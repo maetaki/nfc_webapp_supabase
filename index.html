@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>カード一覧</title>
+</head>
+<body>
+    <h1>登録されてるカード</h1>
+    <ul id="card-list"></ul>
+
+    <script>
+        const url = "https://gxgzndqvwrljktiurlai.supabase.co/rest/v1/cards"; // 君のURLに直す
+        const apikey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw"; // 君のSupabase anonキーに直す
+
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "apikey": apikey,
+                "Authorization": `Bearer ${apikey}`,
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const list = document.getElementById("card-list");
+            data.forEach(card => {
+                const item = document.createElement("li");
+                item.textContent = JSON.stringify(card); // 必要に応じて表示内容アレンジしてOK
+                list.appendChild(item);
+            });
+        })
+        .catch(error => {
+            console.error("エラー:", error);
+        });
+    </script>
+</body>
+</html>
