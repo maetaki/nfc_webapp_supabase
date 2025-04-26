@@ -1,93 +1,82 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>登録者一覧</title>
+  <meta charset="UTF-8">
+  <title>登録者一覧</title>
 </head>
 <body>
-    <h1>登録者一覧</h1>
-    <select id="userSelect">
-        <option value="">選択してください</option>
-    </select>
+  <h1>登録者一覧</h1>
 
-    <h2>登録済み設備</h2>
-    <div id="equipmentList"></div>
+  <select id="userSelect">
+    <option value="">選択してください</option>
+  </select>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script>
-        // Supabaseの設定
-        const supabaseUrl = "https://gxgzndqvwrljktiurlai.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw";
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  <h2>登録済み設備</h2>
+  <ul id="equipmentList"></ul>
 
-        // 英語 → 日本語の設備名変換表
-        const equipmentNames = {
-            drill_large: "ボール盤（大）",
-            drill_small: "ボール盤（小）",
-            lathe: "旋盤",
-            mill_normal: "たてフライス盤",
-            mill_side: "横フライス盤",
-            mill_nc: "NCフライス盤",
-            cut_sheet: "シャー",
-            cut_grind: "カッチング",
-            cut_saw: "カットオフ",
-            bend_large: "曲げ機（大）",
-            bend_small: "曲げ機（小）"
-        };
+  <!-- ① Supabaseのライブラリを先に読み込む -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-        // 全員のデータを保持
-        let usersData = [];
+  <!-- ② Supabaseクライアントを作成する -->
+  <script>
+    const supabase = supabase.createClient(
+      'https://gxgzndqvwrljktiurlai.supabase.co', 
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
+    );
 
-        // 最初にSupabaseからデータを取ってくる
-        async function loadUsers() {
-            const { data, error } = await supabase
-                .from('card')
-                .select('*');
+    // 設備名を日本語に変換するマップ
+    const equipmentNames = {
+      drill_large: 'ボール盤（大）',
+      drill_small: 'ボール盤（小）',
+      lathe: '旋盤',
+      mill_normal: 'たてフライス盤',
+      mill_side: '横フライス盤',
+      mill_nc: 'NCフライス盤',
+      cut_sheet: 'シャー',
+      cut_grind: 'カッチング',
+      cut_saw: 'カットオフ',
+      bend_large: '曲げ機（大）',
+      bend_small: '曲げ機（小）',
+    };
 
-            if (error) {
-                console.error('データ取得エラー:', error);
-                return;
-            }
+    async function loadUsers() {
+      const { data: users, error } = await supabase.from('cards').select('*');
+      if (error) {
+        console.error(error);
+        return;
+      }
 
-            usersData = data;
+      const userSelect = document.getElementById('userSelect');
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.name;
+        userSelect.appendChild(option);
+      });
 
-            const userSelect = document.getElementById('userSelect');
-            data.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.id;
-                option.textContent = user.name;
-                userSelect.appendChild(option);
-            });
+      userSelect.addEventListener('change', function() {
+        const selectedId = parseInt(this.value);
+        const selectedUser = users.find(user => user.id === selectedId);
+        showEquipments(selectedUser);
+      });
+    }
+
+    function showEquipments(user) {
+      const equipmentList = document.getElementById('equipmentList');
+      equipmentList.innerHTML = '';
+
+      if (!user) return;
+
+      Object.keys(equipmentNames).forEach(key => {
+        if (user[key] === "1") {  // 1が登録されている設備
+          const li = document.createElement('li');
+          li.textContent = equipmentNames[key];
+          equipmentList.appendChild(li);
         }
+      });
+    }
 
-        // 誰か選んだら設備を表示
-        document.getElementById('userSelect').addEventListener('change', (event) => {
-            const selectedId = event.target.value;
-            const selectedUser = usersData.find(user => user.id == selectedId);
-
-            if (!selectedUser) {
-                document.getElementById('equipmentList').innerHTML = '';
-                return;
-            }
-
-            let equipmentList = '';
-
-            // 各設備の状態を表示
-            for (const key in equipmentNames) {
-                if (selectedUser[key] === "1") {
-                    equipmentList += `<li>${equipmentNames[key]}</li>`;
-                }
-            }
-
-            if (equipmentList === '') {
-                document.getElementById('equipmentList').innerHTML = '登録されている設備がありません。';
-            } else {
-                document.getElementById('equipmentList').innerHTML = `<ul>${equipmentList}</ul>`;
-            }
-        });
-
-        // ページが開いたら実行
-        loadUsers();
-    </script>
+    loadUsers();
+  </script>
 </body>
 </html>
