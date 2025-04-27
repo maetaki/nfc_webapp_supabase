@@ -49,7 +49,7 @@
     <button onclick="showPage('energy')">電力見える化</button>
   </div>
 
-  <!-- 新規登録ページ (未実装) -->
+  <!-- 新規登録ページ -->
   <div id="register" class="page">
     <h2>新規登録</h2>
     <p>新規登録ページの内容がここに表示されます。</p>
@@ -66,105 +66,102 @@
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 設備使用履歴ページ (未実装) -->
+  <!-- 設備使用履歴ページ -->
   <div id="history" class="page">
     <h2>設備使用履歴</h2>
     <p>設備使用履歴ページの内容がここに表示されます。</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 電力見える化ページ (未実装) -->
+  <!-- 電力見える化ページ -->
   <div id="energy" class="page">
     <h2>電力見える化</h2>
     <p>電力見える化ページの内容がここに表示されます。</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- ホームページ (初期表示) -->
+  <!-- ホームページ -->
   <div id="home" class="page show">
     <h2>メニューを選んでください</h2>
     <p>上のメニューから一つを選択してください。</p>
   </div>
 
-  <!-- Supabaseのライブラリを読み込む -->
+  <!-- Supabaseライブラリを読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <script>
-    // ページ読み込み後にSupabaseを初期化
-    window.addEventListener('DOMContentLoaded', () => {
-      const supabase = supabase.createClient(
-        'https://gxgzndqvwrljktiurlai.supabase.co', 
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
-      );
+    // ★グローバルにSupabaseを初期化する
+    const supabaseClient = supabase.createClient(
+      'https://gxgzndqvwrljktiurlai.supabase.co', 
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
+    );
 
-      // ユーザーのリストを読み込む関数
-      async function loadUsers() {
-        const { data: users, error } = await supabase.from('cards').select('*');
-        if (error) {
-          console.error(error);
-          return;
+    // ユーザーのリストを読み込む関数
+    async function loadUsers() {
+      const { data: users, error } = await supabaseClient.from('cards').select('*');
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const userSelect = document.getElementById('userSelect');
+      userSelect.innerHTML = '<option value="">選択してください</option>';
+      
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.name;
+        userSelect.appendChild(option);
+      });
+
+      userSelect.addEventListener('change', function() {
+        const selectedId = parseInt(this.value);
+        const selectedUser = users.find(user => user.id === selectedId);
+        showEquipments(selectedUser);
+      });
+    }
+
+    // 設備リストを表示する関数
+    function showEquipments(user) {
+      const equipmentList = document.getElementById('equipmentList');
+      equipmentList.innerHTML = '';
+
+      if (!user) return;
+
+      const equipmentNames = {
+        drill_large: 'ボール盤（大）',
+        drill_small: 'ボール盤（小）',
+        lathe: '旋盤',
+        mill_normal: 'たてフライス盤',
+        mill_side: '横フライス盤',
+        mill_nc: 'NCフライス盤',
+        cut_sheet: 'シャー',
+        cut_grind: 'カッチング',
+        cut_saw: 'カットオフ',
+        bend_large: '曲げ機（大）',
+        bend_small: '曲げ機（小）',
+      };
+
+      Object.keys(equipmentNames).forEach(key => {
+        if (user[key] === "1") {
+          const li = document.createElement('li');
+          li.textContent = equipmentNames[key];
+          equipmentList.appendChild(li);
         }
+      });
+    }
 
-        const userSelect = document.getElementById('userSelect');
-        // リストを空にしてから新しいデータを追加
-        userSelect.innerHTML = '<option value="">選択してください</option>';
-
-        // ユーザーのオプションを追加
-        users.forEach(user => {
-          const option = document.createElement('option');
-          option.value = user.id;
-          option.textContent = user.name;
-          userSelect.appendChild(option);
-        });
-
-        userSelect.addEventListener('change', function() {
-          const selectedId = parseInt(this.value);
-          const selectedUser = users.find(user => user.id === selectedId);
-          showEquipments(selectedUser);
-        });
+    // ページ切り替え関数
+    function showPage(page) {
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(p => p.classList.remove('show'));
+      document.getElementById(page).classList.add('show');
+      
+      if (page === 'check') {
+        loadUsers();
       }
-
-      // ユーザーの設備リストを表示する関数
-      function showEquipments(user) {
-        const equipmentList = document.getElementById('equipmentList');
-        equipmentList.innerHTML = '';
-
-        if (!user) return;
-
-        const equipmentNames = {
-          drill_large: 'ボール盤（大）',
-          drill_small: 'ボール盤（小）',
-          lathe: '旋盤',
-          mill_normal: 'たてフライス盤',
-          mill_side: '横フライス盤',
-          mill_nc: 'NCフライス盤',
-          cut_sheet: 'シャー',
-          cut_grind: 'カッチング',
-          cut_saw: 'カットオフ',
-          bend_large: '曲げ機（大）',
-          bend_small: '曲げ機（小）',
-        };
-
-        Object.keys(equipmentNames).forEach(key => {
-          if (user[key] === "1") {
-            const li = document.createElement('li');
-            li.textContent = equipmentNames[key];
-            equipmentList.appendChild(li);
-          }
-        });
-      }
-
-      // ページの切り替えを行う関数
-      function showPage(page) {
-        const pages = document.querySelectorAll('.page');
-        pages.forEach(p => p.classList.remove('show'));
-        document.getElementById(page).classList.add('show');
-        
-        if (page === 'check') {
-          loadUsers();  // 登録情報確認ページに切り替えたとき、ユーザーリストを再度読み込む
-        }
-      }
-    });
+    }
   </script>
+
 </body>
 </html>
