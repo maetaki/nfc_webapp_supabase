@@ -36,10 +36,6 @@
       padding: 10px 20px;
       cursor: pointer;
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
   </style>
 </head>
 <body>
@@ -73,9 +69,7 @@
   <!-- 設備使用履歴ページ -->
   <div id="history" class="page">
     <h2>設備使用履歴</h2>
-    <ul id="historyList">
-      <li>読み込み中...</li>
-    </ul>
+    <p>設備使用履歴ページの内容がここに表示されます。</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
@@ -96,11 +90,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <script>
+    // ★グローバルにSupabaseを初期化する
     const supabaseClient = supabase.createClient(
       'https://gxgzndqvwrljktiurlai.supabase.co', 
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
     );
 
+    // ユーザーのリストを読み込む関数
     async function loadUsers() {
       const { data: users, error } = await supabaseClient.from('cards').select('*');
       if (error) {
@@ -125,6 +121,7 @@
       });
     }
 
+    // 設備リストを表示する関数
     function showEquipments(user) {
       const equipmentList = document.getElementById('equipmentList');
       equipmentList.innerHTML = '';
@@ -154,44 +151,14 @@
       });
     }
 
-    async function loadHistory() {
-      const { data: history, error } = await supabaseClient
-        .from('history')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
-      const historyList = document.getElementById('historyList');
-      historyList.innerHTML = '';
-
-      if (error) {
-        console.error(error);
-        historyList.innerHTML = '<li>履歴の読み込みに失敗しました</li>';
-        return;
-      }
-
-      if (history.length === 0) {
-        historyList.innerHTML = '<li>履歴がありません</li>';
-        return;
-      }
-
-      history.forEach(record => {
-        const li = document.createElement('li');
-        const time = new Date(record.timestamp).toLocaleString('ja-JP');
-        li.textContent = `${time} - ${record.name || '不明なユーザー'} が ${record.equipment || '不明な設備'} を使用`;
-        historyList.appendChild(li);
-      });
-    }
-
+    // ページ切り替え関数
     function showPage(page) {
       const pages = document.querySelectorAll('.page');
       pages.forEach(p => p.classList.remove('show'));
       document.getElementById(page).classList.add('show');
-
+      
       if (page === 'check') {
         loadUsers();
-      } else if (page === 'history') {
-        loadHistory();
       }
     }
   </script>
