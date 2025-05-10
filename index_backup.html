@@ -58,21 +58,172 @@
     <button onclick="showPage('register')">新規登録</button>
     <button onclick="showPage('check')">登録情報確認</button>
     <button onclick="showPage('history')">設備使用履歴</button>
+    <button onclick="showPage('limit')">有効期限更新</button>
     <button onclick="showPage('energy')">電力見える化</button>
   </div>
 
-  <!-- 新規登録ページ -->
-  <div id="register" class="page">
-    <h2>新規登録</h2>
-    <p>新規登録ページの内容がここに表示されます。</p>
-    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
-  </div>
+<!-- 新規登録ページ -->
+<div id="register" class="page">
+  <h2>新規登録</h2>
+
+  <form id="registration-form">
+    <div class="form-group">
+      <label for="drill_large" class="form-label">登録する設備（複数選択可）：</label>
+      <div class="checkboxes">
+        <label><input type="checkbox" name="drill_large"> ボール盤（大）</label>
+        <label><input type="checkbox" name="drill_small"> ボール盤（小）</label>
+        <label><input type="checkbox" name="lathe"> 旋盤</label>
+        <label><input type="checkbox" name="mill_normal"> たてフライス盤</label>
+        <label><input type="checkbox" name="mill_side"> 横フライス盤</label>
+        <label><input type="checkbox" name="mill_nc"> NCフライス盤</label>
+        <label><input type="checkbox" name="cut_sheet"> シャー</label>
+        <label><input type="checkbox" name="cut_grind"> カッチング</label>
+        <label><input type="checkbox" name="cut_saw"> カットオフ</label>
+        <label><input type="checkbox" name="bend_large"> 曲げ機（大）</label>
+        <label><input type="checkbox" name="bend_small"> 曲げ機（小）</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="name" class="form-label">氏名（ローマ字小文字）：</label>
+      <input type="text" id="name" name="name" class="form-input">
+    </div>
+
+    <div class="form-group">
+      <label for="employee_number" class="form-label">従業員コード（半角数字）：</label>
+      <input type="text" id="employee_number" name="employee_number" class="form-input">
+    </div>
+
+    <div class="form-group">
+      <label for="card_id" class="form-label">カードID（半角英数字）：</label>
+      <input type="text" id="card_id" name="card_id" class="form-input">
+    </div>
+
+    <div class="form-group">
+      <label for="registrar_code" class="form-label">教育者の従業員コード：</label>
+      <input type="text" id="registrar_code" name="registrar_code" class="form-input">
+    </div>
+
+    <div class="button-container">
+      <button type="submit" class="submit-button">登録</button>
+    </div>
+  </form>
+
+  <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+</div>
+
+<style>
+  #register {
+    padding: 20px;
+  }
+
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+
+  .form-label {
+    width: 200px;
+    text-align: right;
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+
+  .form-input {
+    width: 250px;
+    padding: 5px;
+  }
+
+  .checkboxes {
+    margin-top: 2px;
+  }
+
+  .checkboxes label {
+    display: block;
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .button-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .submit-button {
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+
+  .back-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    display: block;
+    margin: 20px auto 0;
+  }
+</style>
+
+<script>
+  const SUPABASE_URL = 'https://gxgzndqvwrljktiurlai.supabase.co';
+  const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw';
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    // 機械チェックボックスから1/0の値を作る
+    const machineFields = [
+      'drill_large', 'drill_small', 'lathe', 'mill_normal', 'mill_side',
+      'mill_nc', 'cut_sheet', 'cut_grind', 'cut_saw', 'bend_large', 'bend_small'
+    ];
+    const machineData = {};
+    machineFields.forEach(machine => {
+      machineData[machine] = formData.getAll('machines').includes(machine) ? 1 : 0;
+    });
+
+    const data = {
+      name: formData.get('name'),
+      employee_number: formData.get('employee_number'),
+      card_id: formData.get('card_id'),
+      registrar_code: formData.get('registrar_code'),
+      ...machineData
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/cards`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_API_KEY,
+        'Authorization': `Bearer ${SUPABASE_API_KEY}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(data)
+    });
+
+    const msg = document.getElementById('registerMessage');
+    if (res.ok) {
+      msg.textContent = '登録が完了しました。';
+      form.reset();
+    } else {
+      const error = await res.json();
+      msg.textContent = '登録に失敗しました: ' + (error.message || '不明なエラー');
+    }
+  });
+</script>
+
 
   <!-- 登録情報確認ページ -->
   <div id="check" class="page">
     <h2>登録情報確認</h2>
     <select id="userSelect">
-      <option value="">選択してください</option>
+      <option value="">氏名を選択してください</option>
     </select>
     <ul id="equipmentList"></ul>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
@@ -92,6 +243,13 @@
       </thead>
       <tbody></tbody>
     </table>
+    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  </div>
+
+  <!-- 有効期限更新ページ -->
+  <div id="limit" class="page">
+    <h2>有効期限更新</h2>
+    <p>有効期限更新ページの内容がここに表示されます。</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
@@ -138,7 +296,7 @@
       }
 
       const userSelect = document.getElementById('userSelect');
-      userSelect.innerHTML = '<option value="">選択してください</option>';
+      userSelect.innerHTML = '<option value="">氏名を選択してください</option>';
       
       users.forEach(user => {
         const option = document.createElement('option');
