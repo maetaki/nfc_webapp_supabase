@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>車体部 生産支援課 改善組 カード認証アプリ</title>
+  <title>車体部 生産支援課 改善組 カード認証システム　アプリ</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,19 +52,20 @@
 </head>
 <body>
 
-  <h1>車体部　生産支援課　改善組　カード認証アプリ</h1>
+  <h1>車体部　生産支援課　改善組　カード認証システム　アプリ</h1>
 
   <div class="menu">
-    <button onclick="showPage('register')">新規登録</button>
-    <button onclick="showPage('check')">登録情報確認</button>
-    <button onclick="showPage('history')">設備使用履歴</button>
-    <button onclick="showPage('limit')">有効期限更新</button>
-    <button onclick="showPage('energy')">電力見える化</button>
+    <button onclick="showPage('register')">新規登録手続き</button>
+    <button onclick="showPage('check')">登録情報閲覧</button>
+    <button onclick="showPage('history')">設備稼働履歴閲覧</button>
+    <button onclick="showPage('limit')">有効期限更新手続き</button>
+    <button onclick="showPage('realtime')">設備稼働状況（リアルタイム）閲覧</button>
+    <button onclick="showPage('energy')">消費エネルギー閲覧</button>
   </div>
-
-<!-- 新規登録ページ -->
+  
+<!-- 新規登録手続きページ -->
 <div id="register" class="page">
-  <h2>新規登録</h2>
+  <h2>新規登録手続き</h2>
 
   <form id="registration-form">
     <div class="form-group">
@@ -85,7 +86,16 @@
     </div>
 
     <div class="form-group">
-      <label for="name" class="form-label">氏名（ローマ字小文字）：</label>
+      <label class="form-label">所属部署：</label>
+      <div class="checkboxes" id="department-selection">
+        <label><input type="radio" name="department" value="m"> 自部署（職制）</label>
+        <label><input type="radio" name="department" value="a"> 自部署</label>
+        <label><input type="radio" name="department" value="b"> 他部署</label>
+      </div>
+    </div>    
+
+    <div class="form-group">
+      <label for="name" class="form-label">氏名（フルネーム）：</label>
       <input type="text" id="name" name="name" class="form-input">
     </div>
 
@@ -99,17 +109,18 @@
       <input type="text" id="card_id" name="card_id" class="form-input">
     </div>
 
-    <div class="form-group">
-      <label for="registrar_code" class="form-label">教育者の従業員コード：</label>
-      <input type="text" id="registrar_code" name="registrar_code" class="form-input">
-    </div>
-
     <div class="button-container">
       <button type="submit" class="submit-button">登録</button>
     </div>
   </form>
 
-  <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  <!-- 登録結果のメッセージ表示エリア -->
+  <div id="registerMessage" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
+
+  <!-- ホームに戻るボタンは登録成功後にのみ表示 -->
+  <div id="backToHomeContainer" style="text-align:center; display:none;">
+    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  </div>
 </div>
 
 <style>
@@ -172,56 +183,93 @@
   const SUPABASE_URL = 'https://gxgzndqvwrljktiurlai.supabase.co';
   const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw';
 
-  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  document.getElementById('registration-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const form = e.target;
     const formData = new FormData(form);
+    const msg = document.getElementById('registerMessage');
+    const backBtn = document.getElementById('backToHomeContainer');
+    msg.style.color = 'red'; // エラーは赤で表示
 
-    // 機械チェックボックスから1/0の値を作る
+    // 入力チェック
+    const name = formData.get('name').trim();
+    const employeeNumber = formData.get('employee_number').trim();
+    const cardId = formData.get('card_id').trim();
+    const deptChecked = document.querySelector('input[name="department"]:checked');
+    const machineChecked = Array.from(document.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
+
+    if (!name) {
+      msg.textContent = '氏名を入力してください。';
+      return;
+    }
+    if (!employeeNumber.match(/^\d{7}$/)) {
+      msg.textContent = '従業員コードは7桁の半角数字で入力してください。';
+      return;
+    }
+    if (!cardId.match(/^[A-Za-z0-9]{8}$/)) {
+      msg.textContent = 'カードIDは8桁の半角英数字で入力してください。';
+      return;
+    }
+    if (!deptChecked) {
+      msg.textContent = '所属部署を選択してください。';
+      return;
+    }
+    if (!machineChecked) {
+      msg.textContent = '1つ以上の設備を選択してください。';
+      return;
+    }
+
+    // 設備データ収集
     const machineFields = [
       'drill_large', 'drill_small', 'lathe', 'mill_normal', 'mill_side',
       'mill_nc', 'cut_sheet', 'cut_grind', 'cut_saw', 'bend_large', 'bend_small'
     ];
+
     const machineData = {};
     machineFields.forEach(machine => {
-      machineData[machine] = formData.getAll('machines').includes(machine) ? 1 : 0;
+      const checkbox = document.querySelector(`input[name="${machine}"]`);
+      machineData[machine] = checkbox && checkbox.checked ? 1 : 0;
     });
 
     const data = {
-      name: formData.get('name'),
-      employee_number: formData.get('employee_number'),
-      card_id: formData.get('card_id'),
-      registrar_code: formData.get('registrar_code'),
+      name: name,
+      employee_number: employeeNumber,
+      card_id: cardId,
+      identifier: deptChecked.value,
       ...machineData
     };
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/cards`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_API_KEY,
-        'Authorization': `Bearer ${SUPABASE_API_KEY}`,
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(data)
-    });
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/cards`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_API_KEY,
+          'Authorization': `Bearer ${SUPABASE_API_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(data)
+      });
 
-    const msg = document.getElementById('registerMessage');
-    if (res.ok) {
-      msg.textContent = '登録が完了しました。';
-      form.reset();
-    } else {
-      const error = await res.json();
-      msg.textContent = '登録に失敗しました: ' + (error.message || '不明なエラー');
+      if (res.ok) {
+        msg.textContent = '✅ 登録が完了しました。';
+        msg.style.color = 'green';
+        form.reset();
+        backBtn.style.display = 'block';
+      } else {
+        const error = await res.json();
+        msg.textContent = '❌ 登録に失敗しました: ' + (error.message || '不明なエラー');
+      }
+    } catch (err) {
+      msg.textContent = '❌ 通信エラー: ' + err.message;
     }
   });
 </script>
 
-
-  <!-- 登録情報確認ページ -->
+  <!-- 登録情報閲覧ページ -->
   <div id="check" class="page">
-    <h2>登録情報確認</h2>
+    <h2>登録情報閲覧</h2>
     <select id="userSelect">
       <option value="">氏名を選択してください</option>
     </select>
@@ -229,9 +277,9 @@
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 設備使用履歴ページ -->
+  <!-- 設備稼働履歴閲覧ページ -->
   <div id="history" class="page">
-    <h2>設備使用履歴</h2>
+    <h2>設備稼働履歴閲覧</h2>
     <table id="historyTable">
       <thead>
         <tr>
@@ -246,17 +294,24 @@
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 有効期限更新ページ -->
+  <!-- 有効期限更新手続きページ -->
   <div id="limit" class="page">
-    <h2>有効期限更新</h2>
-    <p>有効期限更新ページの内容がここに表示されます。</p>
+    <h2>有効期限更新手続き</h2>
+    <p>メンテナンス中</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 電力見える化ページ -->
+  <!-- 設備稼働状況（リアルタイム）閲覧ページ -->
+  <div id="realtime" class="page">
+    <h2>設備稼働状況（リアルタイム）閲覧</h2>
+    <p>メンテナンス中</p>
+    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  </div>
+
+  <!-- 消費エネルギー閲覧ページ -->
   <div id="energy" class="page">
-    <h2>電力見える化</h2>
-    <p>電力見える化ページの内容がここに表示されます。</p>
+    <h2>消費エネルギー閲覧</h2>
+    <p>メンテナンス中</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 

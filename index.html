@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>車体部 生産支援課 改善組 カード認証アプリ</title>
+  <title>車体部 生産支援課 改善組 カード認証システム　アプリ</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,217 +52,155 @@
 </head>
 <body>
 
-  <h1>車体部　生産支援課　改善組　カード認証アプリ</h1>
+  <h1>車体部　生産支援課　改善組　カード認証システム　アプリ</h1>
 
   <div class="menu">
-    <button onclick="showPage('register')">新規登録</button>
-    <button onclick="showPage('check')">登録情報確認</button>
-    <button onclick="showPage('history')">設備使用履歴</button>
-    <button onclick="showPage('limit')">有効期限更新</button>
-    <button onclick="showPage('energy')">電力見える化</button>
+    <button onclick="showPage('register')">新規登録手続き</button>
+    <button onclick="showPage('check')">登録情報閲覧</button>
+    <button onclick="showPage('history')">設備稼働履歴閲覧</button>
+    <button onclick="showPage('limit')">有効期限更新手続き</button>
+    <button onclick="showPage('realtime')">設備稼働状況（リアルタイム）閲覧</button>
+    <button onclick="showPage('energy')">消費エネルギー閲覧</button>
   </div>
 
-<!-- 新規登録ページ -->
-<div id="register" class="page">
-  <h2>新規登録</h2>
-
-  <form id="registration-form">
-    <div class="form-group">
-      <label for="drill_large" class="form-label">登録する設備（複数選択可）：</label>
-      <div class="checkboxes">
-        <label><input type="checkbox" name="drill_large"> ボール盤（大）</label>
-        <label><input type="checkbox" name="drill_small"> ボール盤（小）</label>
-        <label><input type="checkbox" name="lathe"> 旋盤</label>
-        <label><input type="checkbox" name="mill_normal"> たてフライス盤</label>
-        <label><input type="checkbox" name="mill_side"> 横フライス盤</label>
-        <label><input type="checkbox" name="mill_nc"> NCフライス盤</label>
-        <label><input type="checkbox" name="cut_sheet"> シャー</label>
-        <label><input type="checkbox" name="cut_grind"> カッチング</label>
-        <label><input type="checkbox" name="cut_saw"> カットオフ</label>
-        <label><input type="checkbox" name="bend_large"> 曲げ機（大）</label>
-        <label><input type="checkbox" name="bend_small"> 曲げ機（小）</label>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">所属部署：</label>
-      <div class="checkboxes" id="department-selection">
-        <label><input type="radio" name="department" value="m"> 自部署（職制）</label>
-        <label><input type="radio" name="department" value="a"> 自部署</label>
-        <label><input type="radio" name="department" value="b"> 他部署</label>
-      </div>
-    </div>    
-
-    <div class="form-group">
-      <label for="name" class="form-label">氏名（ローマ字小文字）：</label>
-      <input type="text" id="name" name="name" class="form-input">
-    </div>
-
-    <div class="form-group">
-      <label for="employee_number" class="form-label">従業員コード（半角数字）：</label>
-      <input type="text" id="employee_number" name="employee_number" class="form-input">
-    </div>
-
-    <div class="form-group">
-      <label for="card_id" class="form-label">カードID（半角英数字）：</label>
-      <input type="text" id="card_id" name="card_id" class="form-input">
-    </div>
-
-
-    <div class="button-container">
-      <button type="submit" class="submit-button">登録</button>
-    </div>
-  </form>
-
-
-  <!-- 登録結果のメッセージ表示エリア -->
-  <div id="registerMessage" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
-
-  <!-- ホームに戻るボタンは登録成功後にのみ表示 -->
-  <div id="backToHomeContainer" style="text-align:center; display:none;">
-    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  <!-- ホームページ -->
+  <div id="home" class="page show">
+    <h2>メニューを選んでください</h2>
+    <p>上のメニューから一つを選択してください。</p>
   </div>
-</div>
 
+  <!-- 新規登録手続きページ -->
+  <div id="register" class="page">
+    <h2>新規登録手続き</h2>
 
-<style>
-  #register {
-    padding: 20px;
-  }
+    <form id="registration-form">
+      <div class="form-group">
+        <label for="drill_large" class="form-label">登録する設備（複数選択可）：</label>
+        <div class="checkboxes">
+          <label><input type="checkbox" name="drill_large"> ボール盤（大）</label>
+          <label><input type="checkbox" name="drill_small"> ボール盤（小）</label>
+          <label><input type="checkbox" name="lathe"> 旋盤</label>
+          <label><input type="checkbox" name="mill_normal"> たてフライス盤</label>
+          <label><input type="checkbox" name="mill_side"> 横フライス盤</label>
+          <label><input type="checkbox" name="mill_nc"> NCフライス盤</label>
+          <label><input type="checkbox" name="cut_sheet"> シャー</label>
+          <label><input type="checkbox" name="cut_grind"> カッチング</label>
+          <label><input type="checkbox" name="cut_saw"> カットオフ</label>
+          <label><input type="checkbox" name="bend_large"> 曲げ機（大）</label>
+          <label><input type="checkbox" name="bend_small"> 曲げ機（小）</label>
+        </div>
+      </div>
 
-  form {
-    max-width: 600px;
-    margin: 0 auto;
-  }
+      <div class="form-group">
+        <label class="form-label">所属部署：</label>
+        <div class="checkboxes" id="department-selection">
+          <label><input type="radio" name="department" value="m"> 自部署（職制）</label>
+          <label><input type="radio" name="department" value="a"> 自部署</label>
+          <label><input type="radio" name="department" value="b"> 他部署</label>
+        </div>
+      </div>    
 
-  .form-group {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 15px;
-  }
+      <div class="form-group">
+        <label for="name" class="form-label">氏名（フルネーム）：</label>
+        <input type="text" id="name" name="name" class="form-input">
+      </div>
 
-  .form-label {
-    width: 200px;
-    text-align: right;
-    margin-right: 10px;
-    white-space: nowrap;
-  }
+      <div class="form-group">
+        <label for="employee_number" class="form-label">従業員コード（半角数字）：</label>
+        <input type="text" id="employee_number" name="employee_number" class="form-input">
+      </div>
 
-  .form-input {
-    width: 250px;
-    padding: 5px;
-  }
+      <div class="form-group">
+        <label for="card_id" class="form-label">カードID（半角英数字）：</label>
+        <input type="text" id="card_id" name="card_id" class="form-input">
+      </div>
 
-  .checkboxes {
-    margin-top: 2px;
-  }
+      <div class="button-container">
+        <button type="submit" class="submit-button">登録</button>
+      </div>
+    </form>
 
-  .checkboxes label {
-    display: block;
-    margin-left: 0;
-    text-align: left;
-  }
+    <!-- 登録結果のメッセージ表示エリア -->
+    <div id="registerMessage" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
 
-  .button-container {
-    text-align: center;
-    margin-top: 20px;
-  }
+    <!-- ホームに戻るボタンは登録成功後にのみ表示 -->
+    <div id="backToHomeContainer" style="text-align:center; display:none;">
+      <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+    </div>
+  </div>
 
-  .submit-button {
-    padding: 10px 20px;
-    font-size: 16px;
-  }
-
-  .back-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    display: block;
-    margin: 20px auto 0;
-  }
-</style>
-
-<script>
-  const SUPABASE_URL = 'https://gxgzndqvwrljktiurlai.supabase.co';
-  const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw';
-
-  document.getElementById('registration-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
-
-    const machineFields = [
-      'drill_large', 'drill_small', 'lathe', 'mill_normal', 'mill_side',
-      'mill_nc', 'cut_sheet', 'cut_grind', 'cut_saw', 'bend_large', 'bend_small'
-    ];
-
-    const machineData = {};
-    machineFields.forEach(machine => {
-      const checkbox = document.querySelector(`input[name="${machine}"]`);
-      machineData[machine] = checkbox && checkbox.checked ? 1 : 0;
-    });
-
-    // 所属部署チェックボックスの値を取得
-    const deptCheckboxes = document.querySelectorAll('input[name="department"]:checked');
-    let identifier = null;
-    if (deptCheckboxes.length > 0) {
-      identifier = deptCheckboxes[0].value;  // 最初のチェックされた値を採用
+  <style>
+    #register {
+      padding: 20px;
     }
 
-    const data = {
-      name: formData.get('name'),
-      employee_number: formData.get('employee_number'),
-      card_id: formData.get('card_id'),
-      identifier: identifier,
-      ...machineData
-    };
-
-    const msg = document.getElementById('registerMessage');
-    const backBtn = document.getElementById('backToHomeContainer');
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/cards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_API_KEY,
-          'Authorization': `Bearer ${SUPABASE_API_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (res.ok) {
-        msg.textContent = '✅ 登録が完了しました。';
-        msg.style.color = 'green';
-        form.reset();
-        backBtn.style.display = 'block';
-      } else {
-        const error = await res.json();
-        msg.textContent = '❌ 登録に失敗しました: ' + (error.message || '不明なエラー');
-        msg.style.color = 'red';
-      }
-    } catch (err) {
-      msg.textContent = '❌ 通信エラー: ' + err.message;
-      msg.style.color = 'red';
+    form {
+      max-width: 600px;
+      margin: 0 auto;
     }
-  });
-</script>
 
+    .form-group {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
 
-  <!-- 登録情報確認ページ -->
+    .form-label {
+      width: 200px;
+      text-align: right;
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+
+    .form-input {
+      width: 250px;
+      padding: 5px;
+    }
+
+    .checkboxes {
+      margin-top: 2px;
+    }
+
+    .checkboxes label {
+      display: block;
+      margin-left: 0;
+      text-align: left;
+    }
+
+    .button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .submit-button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    .back-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      display: block;
+      margin: 20px auto 0;
+    }
+  </style>
+
+  <!-- 登録情報閲覧ページ -->
   <div id="check" class="page">
-    <h2>登録情報確認</h2>
-    <select id="userSelect">
-      <option value="">氏名を選択してください</option>
-    </select>
-    <ul id="equipmentList"></ul>
+    <h2>登録情報閲覧</h2>
+    <p>該当者の使用可能設備一覧が表示されます</p>
+    <label for="employeeSearch">従業員コードを入力してください：</label>
+    <input type="text" id="employeeSearch" maxlength="7">
+    <button onclick="loadPersonalLicense()">検索</button>
+  
+    <div id="employeeInfo" style="margin-top: 20px;"></div>
+  
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 設備使用履歴ページ -->
+  <!-- 設備稼働履歴閲覧ページ -->
   <div id="history" class="page">
-    <h2>設備使用履歴</h2>
+    <h2>設備稼働履歴閲覧</h2>
     <table id="historyTable">
       <thead>
         <tr>
@@ -277,34 +215,35 @@
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 有効期限更新ページ -->
+  <!-- 有効期限更新手続きページ -->
   <div id="limit" class="page">
-    <h2>有効期限更新</h2>
-    <p>有効期限更新ページの内容がここに表示されます。</p>
+    <h2>有効期限更新手続き</h2>
+    <p>メンテナンス中</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- 電力見える化ページ -->
+  <!-- 設備稼働状況（リアルタイム）閲覧ページ -->
+  <div id="realtime" class="page">
+    <h2>設備稼働状況（リアルタイム）閲覧</h2>
+    <p>メンテナンス中</p>
+    <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
+  </div>
+
+  <!-- 消費エネルギー閲覧ページ -->
   <div id="energy" class="page">
-    <h2>電力見える化</h2>
-    <p>電力見える化ページの内容がここに表示されます。</p>
+    <h2>消費エネルギー閲覧</h2>
+    <p>メンテナンス中</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
-  <!-- ホームページ -->
-  <div id="home" class="page show">
-    <h2>メニューを選んでください</h2>
-    <p>上のメニューから一つを選択してください。</p>
-  </div>
 
+  <!-- スクリプト -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
   <script>
     const supabaseClient = supabase.createClient(
       'https://gxgzndqvwrljktiurlai.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4Z3puZHF2d3Jsamt0aXVybGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNzA5MTAsImV4cCI6MjA1OTc0NjkxMH0.WpeqvO_3sK2iGfQq_4yDC62gJ-eq6wSapi0AVTv5Hnw'
     );
-
     const equipmentNames = {
       drill_large: 'ボール盤（大）',
       drill_small: 'ボール盤（小）',
@@ -319,45 +258,127 @@
       bend_small: '曲げ機（小）'
     };
 
-    async function loadUsers() {
-      const { data: users, error } = await supabaseClient.from('cards').select('*');
-      if (error) {
-        console.error(error);
-        return;
-      }
+    // 新規登録手続き---------------------------------------------------------------------------------------------------------------------------------------------
+    async function createNewUser() {
+      document.getElementById('registration-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      const userSelect = document.getElementById('userSelect');
-      userSelect.innerHTML = '<option value="">氏名を選択してください</option>';
-      
-      users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = user.name;
-        userSelect.appendChild(option);
-      });
+        const form = e.target;
+        const formData = new FormData(form);
+        const msg = document.getElementById('registerMessage');
+        const backBtn = document.getElementById('backToHomeContainer');
+        msg.style.color = 'red'; // エラーは赤で表示
 
-      userSelect.addEventListener('change', function() {
-        const selectedId = parseInt(this.value);
-        const selectedUser = users.find(user => user.id === selectedId);
-        showEquipments(selectedUser);
-      });
-    }
+        // 入力チェック
+        const name = formData.get('name').trim();
+        const employeeNumber = formData.get('employee_number').trim();
+        const cardId = formData.get('card_id').trim();
+        const deptChecked = document.querySelector('input[name="department"]:checked');
+        const machineChecked = Array.from(document.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
 
-    function showEquipments(user) {
-      const equipmentList = document.getElementById('equipmentList');
-      equipmentList.innerHTML = '';
+        if (!name) {
+          msg.textContent = '氏名を入力してください。';
+          return;
+        }
+        if (!employeeNumber.match(/^\d{7}$/)) {
+          msg.textContent = '従業員コードは7桁の半角数字で入力してください。';
+          return;
+        }
+        if (!cardId.match(/^[A-Za-z0-9]{8}$/)) {
+          msg.textContent = 'カードIDは8桁の半角英数字で入力してください。';
+          return;
+        }
+        if (!deptChecked) {
+          msg.textContent = '所属部署を選択してください。';
+          return;
+        }
+        if (!machineChecked) {
+          msg.textContent = '1つ以上の設備を選択してください。';
+          return;
+        }
 
-      if (!user) return;
+        // 設備データ収集
+        const machineFields = [
+          'drill_large', 'drill_small', 'lathe', 'mill_normal', 'mill_side',
+          'mill_nc', 'cut_sheet', 'cut_grind', 'cut_saw', 'bend_large', 'bend_small'
+        ];
 
-      Object.keys(equipmentNames).forEach(key => {
-        if (user[key] === "1") {
-          const li = document.createElement('li');
-          li.textContent = equipmentNames[key];
-          equipmentList.appendChild(li);
+        const machineData = {};
+        machineFields.forEach(machine => {
+          const checkbox = document.querySelector(`input[name="${machine}"]`);
+          machineData[machine] = checkbox && checkbox.checked ? 1 : 0;
+        });
+
+        const data = {
+          name: name,
+          employee_number: employeeNumber,
+          card_id: cardId,
+          identifier: deptChecked.value,
+          ...machineData
+        };
+
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/cards`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_API_KEY,
+              'Authorization': `Bearer ${SUPABASE_API_KEY}`,
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (res.ok) {
+            msg.textContent = '✅ 登録が完了しました。';
+            msg.style.color = 'green';
+            form.reset();
+            backBtn.style.display = 'block';
+          } else {
+            const error = await res.json();
+            msg.textContent = '❌ 登録に失敗しました: ' + (error.message || '不明なエラー');
+          }
+        } catch (err) {
+          msg.textContent = '❌ 通信エラー: ' + err.message;
         }
       });
     }
 
+    //登録情報閲覧---------------------------------------------------------------------------------------------------------------------------------------------
+    async function loadPersonalLicense() {
+
+      const inputCode = document.getElementById("employeeSearch").value.trim();
+      const employeeInfoDiv = document.getElementById("employeeInfo");
+
+      if (!/^\d{7}$/.test(inputCode)) {
+        employeeInfoDiv.innerHTML = "<p style='color: red;'>7桁の半角数字の従業員コードを入力してください。</p>";
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("cards")
+        .select("name, drill_large, drill_small, lathe, mill_normal, mill_side, mill_nc, cut_sheet, cut_grind, cut_saw, bend_large, bend_small")
+        .eq("employee_number", inputCode)
+        .single();
+
+      if (error || !data) {
+        employeeInfoDiv.innerHTML = "<p style='color: red;'>従業員コードが見つかりませんでした。</p>";
+        return;
+      }
+
+      const equipmentList = Object.entries(equipmentNames)
+        .filter(([key, _]) => data[key] === "1")
+        .map(([_, label]) => `<li>${label}</li>`)
+        .join("");
+
+      employeeInfoDiv.innerHTML = `
+        <p><strong>氏名：</strong>${data.name}</p>
+        <p><strong>使用可能な設備：</strong></p>
+        <ul>${equipmentList || "<li>なし</li>"}</ul>
+      `;
+    }
+
+    //設備稼働履歴閲覧---------------------------------------------------------------------------------------------------------------------------------------------
     async function loadHistory() {
       // cards テーブルからカードIDと名前のマップを取得
       const { data: cards, error: cardError } = await supabaseClient
@@ -431,15 +452,18 @@
       });
     }
 
+    //---------------------------------------------------------------------------------------------------------------------------------------------
     function showPage(page) {
       const pages = document.querySelectorAll('.page');
       pages.forEach(p => p.classList.remove('show'));
       document.getElementById(page).classList.add('show');
 
-      if (page === 'check') {
-        loadUsers();
+      if (page === 'register') {
+        createNewUser();
       } else if (page === 'history') {
         loadHistory();
+      } else if (page === 'check') {
+        loadPersonalLicense();
       }
     }
   </script>
