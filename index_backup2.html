@@ -237,33 +237,7 @@
   <!-- 消費エネルギー閲覧ページ -->
   <div id="energy" class="page">
     <h2>消費エネルギー閲覧</h2>
-    <!-- <p>メンテナンス中</p> -->
-    <p id="energy-title"></p>
-    <table>
-      <thead>
-        <tr>
-          <th>設備</th>
-          <th>稼働時間</th>
-          <th>消費電力量</th>
-          <th>電気代</th>
-          <th>CO₂排出量（換算）</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>ボール盤（大）</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>ボール盤（小）</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>旋盤</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>たてフライス盤</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>横フライス盤</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>NCフライス盤</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>シャー</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>カッチング</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>カットオフ</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>曲げ機（大）</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>曲げ機（小）</td><td></td><td></td><td></td><td></td></tr>
-      </tbody>
-    </table>
-
+    <p>メンテナンス中</p>
     <button class="back-button" onclick="showPage('home')">ホームに戻る</button>
   </div>
 
@@ -493,67 +467,6 @@
       });
     }
 
-
-
-    //消費エネルギー閲覧---------------------------------------------------------------------------------------------------------------------------------------------
-    async function loadEnergyData() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1; // getMonth() は 0〜11 を返すので +1
-      const energyTitle = `今月（${year}年${month}月）の消費エネルギー累計`;
-      document.getElementById("energy-title").textContent = energyTitle;
-
-      // 今月の初日（00:00:00）を取得
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfMonthStr = startOfMonth.toISOString().split('T')[0] + ' 00:00:00';
-
-      // Supabaseから今月分のhistoryを取得
-      const { data, error } = await supabaseClient
-        .from('history')
-        .select('machine, login_datetime, logoff_datetime')
-        .gte('login_datetime', startOfMonthStr);
-      if (error) {
-        console.error('データ取得エラー:', error);
-        return;
-      }
-
-      // 稼働時間（分）を設備ごとに集計
-      const totalMinutes = {};  // 例: { 'ボール盤（大）': 123, ... }
-
-      for (const row of data) {
-        const machineKey = row.machine;
-        const displayName = equipmentNames[machineKey];
-        if (!displayName) continue;
-
-        const loginTime = new Date(row.login_datetime);
-        const logoffTime = new Date(row.logoff_datetime);
-        const diffMs = logoffTime - loginTime;
-        const minutes = Math.floor(diffMs / 60000); // ミリ秒→分
-        if (minutes < 0) continue;
-
-        if (!totalMinutes[displayName]) {
-          totalMinutes[displayName] = 0;
-        }
-        totalMinutes[displayName] += minutes;
-      }
-
-      // HTMLテーブルに挿入
-      const rows = document.querySelectorAll('#energy table tbody tr');
-      rows.forEach(row => {
-        const nameCell = row.children[0];
-        const timeCell = row.children[1];
-        const machineName = nameCell.textContent.trim();
-        if (totalMinutes[machineName]) {
-          timeCell.textContent = totalMinutes[machineName] + ' 分';
-        } else {
-          timeCell.textContent = '-';
-        }
-      });
-    }
-
-    // ページ読み込み時に実行
-    document.addEventListener('DOMContentLoaded', loadEnergyData);
-
     //---------------------------------------------------------------------------------------------------------------------------------------------
     function showPage(page) {
       const pages = document.querySelectorAll('.page');
@@ -566,10 +479,7 @@
         loadHistory();
       } else if (page === 'check') {
         loadPersonalLicense();
-      } else if (page === 'energy') {
-        loadEnergyData();
       }
-
     }
   </script>
 </body>
